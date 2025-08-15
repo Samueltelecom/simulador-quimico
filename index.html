@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulador Químico Inteligente</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background-color: #001f3f;
+      color: white;
+    }
+    input, select, button {
+      margin: 5px 0;
+      padding: 5px;
+      font-size: 16px;
+    }
+    .container {
+      margin-top: 20px;
+    }
+    .historico {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>⚗️ Simulador Químico Inteligente</h1>
+
+  <div class="container">
+    <h2>🔍 Simular Reação</h2>
+    <input type="text" id="reagente1" placeholder="Reagente 1">
+    <input type="text" id="reagente2" placeholder="Reagente 2">
+    <button onclick="simularReacao()">Simular</button>
+    <div id="resultado" style="margin-top:10px;"></div>
+  </div>
+
+  <div class="container">
+    <h2>➕ Cadastrar Nova Reação</h2>
+    <input type="text" id="novoR1" placeholder="Reagente 1">
+    <input type="text" id="novoR2" placeholder="Reagente 2">
+    <input type="text" id="novoProduto" placeholder="Produto">
+    <input type="text" id="novoTipo" placeholder="Tipo de Reação">
+    <button onclick="cadastrarReacao()">Cadastrar</button>
+    <div id="cadastroMsg" style="margin-top:10px;"></div>
+  </div>
+
+  <div class="container">
+  <h2>📚 Reações Conhecidas</h2>
+  <table border="1" cellpadding="8" cellspacing="0" style="width:100%; background-color:#012a4a; color:white;">
+    <thead>
+      <tr>
+        <th>Reagente 1</th>
+        <th>Reagente 2</th>
+        <th>Produto</th>
+        <th>Tipo</th>
+      </tr>
+    </thead>
+    <tbody id="tabelaReacoes"></tbody>
+  </table>
+</div>
+
+  <div class="historico">
+    <h2>🧾 Histórico de Reações</h2>
+    <ul id="listaHistorico"></ul>
+    <button onclick="limparHistorico()">🗑️ Limpar Histórico</button>
+  </div>
+
+  <script>
+    let reacoesConhecidas = [
+      { reagente1: "hcl", reagente2: "naoh", produto: "NaCl + H₂O", tipo: "Neutralização Ácido-Base" },
+      { reagente1: "ch4", reagente2: "o2", produto: "CO₂ + H₂O", tipo: "Combustão" },
+      { reagente1: "fe", reagente2: "cuso4", produto: "FeSO₄ + Cu", tipo: "Deslocamento Simples" },
+      { reagente1: "caco3", reagente2: "→", produto: "CaO + CO₂", tipo: "Decomposição Térmica" },
+      { reagente1: "na", reagente2: "cl2", produto: "NaCl", tipo: "Síntese" },
+      { reagente1: "agno3", reagente2: "nacl", produto: "AgCl + NaNO₃", tipo: "Dupla Troca" }
+    ];
+
+    function normalizar(texto) {
+      return texto.toLowerCase().replace(/\s+/g, '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function simularReacao() {
+      const r1 = normalizar(document.getElementById('reagente1').value);
+      const r2 = normalizar(document.getElementById('reagente2').value);
+
+      let produto = `${r1} + ${r2} → Produto Simulado`;
+      let tipo = "Desconhecida";
+
+      for (let reacao of reacoesConhecidas) {
+        if (
+          (reacao.reagente1 === r1 && reacao.reagente2 === r2) ||
+          (reacao.reagente1 === r2 && reacao.reagente2 === r1)
+        ) {
+          produto = `${reacao.reagente1.toUpperCase()} + ${reacao.reagente2.toUpperCase()} → ${reacao.produto}`;
+          tipo = reacao.tipo;
+          break;
+        }
+      }
+
+      const resultado = `${produto} [${tipo}]`;
+      document.getElementById('resultado').innerText = resultado;
+      salvarHistorico(resultado);
+      mostrarHistorico();
+    }
+
+    function cadastrarReacao() {
+      const r1 = normalizar(document.getElementById('novoR1').value);
+      const r2 = normalizar(document.getElementById('novoR2').value);
+      const produto = document.getElementById('novoProduto').value;
+      const tipo = document.getElementById('novoTipo').value;
+
+      if (r1 && r2 && produto && tipo) {
+        reacoesConhecidas.push({ reagente1: r1, reagente2: r2, produto, tipo });
+        document.getElementById('cadastroMsg').innerText = "✅ Reação cadastrada com sucesso!";
+      } else {
+        document.getElementById('cadastroMsg').innerText = "⚠️ Preencha todos os campos.";
+      }
+    }
+
+    function salvarHistorico(reacao) {
+      let historico = JSON.parse(localStorage.getItem('historicoReacoes')) || [];
+      historico.unshift(reacao);
+      if (historico.length > 5) historico.pop();
+      localStorage.setItem('historicoReacoes', JSON.stringify(historico));
+    }
+
+    function mostrarHistorico() {
+      const lista = document.getElementById('listaHistorico');
+      lista.innerHTML = '';
+      const historico = JSON.parse(localStorage.getItem('historicoReacoes')) || [];
+      historico.forEach(reacao => {
+        const item = document.createElement('li');
+        item.textContent = reacao;
+        lista.appendChild(item);
+      });
+    }
+
+    function limparHistorico() {
+      localStorage.removeItem('historicoReacoes');
+      mostrarHistorico();
+    }
+
+    mostrarHistorico();
+  </script>src="script.js"></script>
+</body>
+</html>
